@@ -46,9 +46,20 @@ h1{font-size:22px;margin:0 0 6px}h2{font-size:19px;margin:22px 0 8px}h3{font-siz
   .actions,.filterline{grid-template-columns:1fr}
   .question,.prompt{font-size:19px}
 }
+
+.hub-home-link{
+  position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));
+  z-index:9999;text-decoration:none;background:var(--p);color:var(--t);
+  border:1px solid var(--l);border-radius:999px;padding:10px 13px;
+  font-weight:800;font-size:13px;box-shadow:0 4px 18px rgba(0,0,0,.12)
+}
+.hub-home-link:active{transform:scale(.98)}
+
 </style>
 </head>
 <body>
+<a class="hub-home-link" href="https://domoyo399-byte.github.io/trki-c1-hub/" aria-label="返回 C1 学习中心">⌂ 学习中心</a>
+
 <div class="wrap">
   <div class="hero">
     <h1>ТРКИ-C1 语法错题库</h1>
