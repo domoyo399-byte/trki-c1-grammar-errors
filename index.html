@@ -93,6 +93,15 @@ h1{font-size:22px;margin:0 0 6px}h2{font-size:19px;margin:22px 0 8px}h3{font-siz
 
   <section id="today" class="view">
     <h2>今日错题</h2>
+
+    <div class="panel hidden" id="resumePanel">
+      <h3>未完成训练</h3>
+      <div class="muted" id="resumeText"></div>
+      <div class="actions">
+        <button class="primary" id="resumeSession">继续上次训练</button>
+        <button id="discardSession">放弃这轮</button>
+      </div>
+    </div>
     <div class="panel">
       <div class="actions">
         <button class="primary" onclick="startReview('original')">只重做原错题</button>
@@ -139,68 +148,10 @@ h1{font-size:22px;margin:0 0 6px}h2{font-size:19px;margin:22px 0 8px}h3{font-siz
 
 <script>
 const STORAGE_KEY="trki_c1_grammar_errors_v1";
+const SESSION_KEY="trki_c1_grammar_session_v1";
 const DAY=86400000;
 
-const DEMO=[
-  {
-    id:"vopreki_dative_001",
-    questionType:"choice",
-    question:"Вопреки ___ он продолжил работу.",
-    options:["обстоятельства","обстоятельствам","обстоятельствами"],
-    userAnswer:"обстоятельства",
-    correctAnswer:"обстоятельствам",
-    acceptedAnswers:["обстоятельствам"],
-    ruleId:"prep_vopreki_dative",
-    ruleName:"вопреки + Д.п.",
-    errorType:"格支配",
-    explanation:"介词 вопреки 要求第三格（Д.п.）。",
-    source:"演示题 / №1",
-    tags:["介词","格支配"],
-    variants:[
-      {id:"v1",questionType:"choice",question:"Вопреки ___ директора проект продолжили.",options:["решение","решению","решением"],correctAnswer:"решению",acceptedAnswers:["решению"]},
-      {id:"v2",questionType:"fill",question:"Вопреки ___ (совет) он всё-таки поехал.",correctAnswer:"совету",acceptedAnswers:["совету"]}
-    ],
-    history:[],nextDue:Date.now()
-  },
-  {
-    id:"soglasno_dative_001",
-    questionType:"fill",
-    question:"Согласно ___ (расписание), экзамен начнётся в десять.",
-    options:[],
-    userAnswer:"расписания",
-    correctAnswer:"расписанию",
-    acceptedAnswers:["расписанию"],
-    ruleId:"prep_soglasno_dative",
-    ruleName:"согласно + Д.п.",
-    errorType:"格支配",
-    explanation:"介词 согласно 在规范用法中要求第三格。",
-    source:"演示题 / №2",
-    tags:["介词","格支配"],
-    variants:[
-      {id:"v1",questionType:"fill",question:"Согласно ___ (данные), ситуация изменилась.",correctAnswer:"данным",acceptedAnswers:["данным"]}
-    ],
-    history:[],nextDue:Date.now()
-  },
-  {
-    id:"chtoby_subj_001",
-    questionType:"choice",
-    question:"Я хочу, ___ вы ещё раз проверили документы.",
-    options:["что","чтобы","как"],
-    userAnswer:"что",
-    correctAnswer:"чтобы",
-    acceptedAnswers:["чтобы"],
-    ruleId:"chtoby_subordinate",
-    ruleName:"чтобы + 过去时形式（目的/愿望从句）",
-    errorType:"连接词 / 从句",
-    explanation:"主句表达愿望、要求、目的等时，常用 чтобы 引导从句；从句谓语通常形式上用过去时。",
-    source:"演示题 / №3",
-    tags:["从句","连接词"],
-    variants:[
-      {id:"v1",questionType:"choice",question:"Важно, ___ все участники заранее получили материалы.",options:["что","чтобы","если"],correctAnswer:"чтобы",acceptedAnswers:["чтобы"]}
-    ],
-    history:[],nextDue:Date.now()
-  }
-];
+const DEMO=[];
 
 function clone(x){return JSON.parse(JSON.stringify(x))}
 function norm(s){return (s||"").toLowerCase().replace(/ё/g,"е").trim().replace(/\s+/g," ")}
@@ -306,12 +257,52 @@ function buildDeck(mode,ruleId=null){
   });
   return deck.sort(()=>Math.random()-.5).slice(0,12);
 }
-function startReview(mode){session.mode=mode;session.deck=buildDeck(mode);session.i=0;showView("today");renderTest()}
-function startRule(ruleId){session.mode="mixed";session.deck=buildDeck("mixed",ruleId);session.i=0;showView("today");renderTest()}
+
+function deckDescriptor(d){return {itemId:d.itemId,kind:d.kind,variantId:d.variantId||null}}
+function resolveDescriptor(x){
+  const it=db.items.find(z=>z.id===x.itemId);if(!it)return null;
+  if(x.kind==="original")return {itemId:it.id,kind:"original",q:it};
+  const v=(it.variants||[]).find(z=>z.id===x.variantId);if(!v)return null;
+  return {itemId:it.id,kind:"variant",variantId:v.id,q:v,parent:it}
+}
+function savedGrammarSession(){
+  try{
+    const s=JSON.parse(localStorage.getItem(SESSION_KEY)||"null");
+    if(!s||!Array.isArray(s.deck))return null;
+    s.deck=s.deck.filter(x=>resolveDescriptor(x));
+    s.i=Math.max(0,Math.min(Number(s.i)||0,s.deck.length));
+    if(!s.deck.length||s.i>=s.deck.length){localStorage.removeItem(SESSION_KEY);return null}
+    return s
+  }catch(e){return null}
+}
+function renderResume(){
+  const el=document.getElementById("resumePanel");if(!el)return;
+  const s=savedGrammarSession();
+  if(!s){el.classList.add("hidden");return}
+  const names={mixed:"原题 + 变式",original:"原错题",variant:"变式题"};
+  document.getElementById("resumeText").textContent=`${names[s.mode]||"错题训练"} · ${s.i+1}/${s.deck.length} · 已自动保存`;
+  el.classList.remove("hidden")
+}
+function persistGrammarSession(){
+  if(!session.deck.length||session.i>=session.deck.length){localStorage.removeItem(SESSION_KEY);renderResume();return}
+  localStorage.setItem(SESSION_KEY,JSON.stringify({
+    format:"TRKI-C1-GRAMMAR-SESSION",version:1,mode:session.mode,
+    deck:session.deck.map(deckDescriptor),i:session.i,savedAt:Date.now()
+  }));renderResume()
+}
+function clearGrammarSession(){localStorage.removeItem(SESSION_KEY);renderResume()}
+function resumeGrammarSession(){
+  const s=savedGrammarSession();if(!s){alert("没有可继续的训练。");renderResume();return}
+  session={deck:s.deck.map(resolveDescriptor).filter(Boolean),i:s.i,mode:s.mode,pending:null};
+  showView("today");renderTest()
+}
+
+function startReview(mode){session.mode=mode;session.deck=buildDeck(mode);session.i=0;persistGrammarSession();showView("today");renderTest()}
+function startRule(ruleId){session.mode="mixed";session.deck=buildDeck("mixed",ruleId);session.i=0;persistGrammarSession();showView("today");renderTest()}
 function renderTest(){
   const area=document.getElementById("testArea");
   if(session.i>=session.deck.length){
-    area.innerHTML='<div style="text-align:center"><b>这一轮完成了。</b><div class="muted" style="margin-top:8px">题目和语法点统计已更新。</div></div>';
+    clearGrammarSession();area.innerHTML='<div style="text-align:center"><b>这一轮完成了。</b><div class="muted" style="margin-top:8px">题目和语法点统计已更新。</div></div>';
     renderOverview();renderRules();renderAll();return
   }
   const d=session.deck[session.i],q=d.q;
@@ -356,7 +347,7 @@ function recordAndNext(correct){
   if(streak.length===3&&streak.every(x=>x.correct)&&streak.some(x=>x.kind==="variant"))parent.nextDue=Date.now()+7*DAY;
   else if(correct)parent.nextDue=Date.now()+2*DAY;
   else parent.nextDue=Date.now()+DAY;
-  save();session.pending=null;session.i++;renderTest();renderOverview()
+  save();session.pending=null;session.i++;persistGrammarSession();renderTest();renderOverview()
 }
 function mergeItem(oldp,newp){
   const keep=["history","nextDue"];
@@ -376,12 +367,14 @@ document.getElementById("importPack").onchange=e=>readJSON(e.target.files[0],x=>
     if(!it.question||!it.correctAnswer||!it.ruleId)return;
     const old=map.get(it.id);map.set(it.id,mergeItem(old,it));if(!old)added++
   });
-  db.items=[...map.values()];save();setupRuleFilter();renderOverview();renderRules();renderAll();
+  db.items=[...map.values()];save();document.getElementById("resumeSession").onclick=resumeGrammarSession;
+document.getElementById("discardSession").onclick=()=>{if(confirm("放弃这轮未完成训练？已经记录的成绩不会删除。"))clearGrammarSession()};
+setupRuleFilter();renderOverview();renderRules();renderAll();renderResume();
   alert("导入完成：新增 "+added+" 道；重复错题保留原复习记录。")
 });
 document.getElementById("exportBackup").onclick=()=>{
   const d=new Date().toISOString().slice(0,10);
-  download("TRKI_C1_grammar_errors_backup_"+d+".json",JSON.stringify({format:"TRKI-C1-GRAMMAR-ERROR-BACKUP",version:1,exportedAt:new Date().toISOString(),db},null,2))
+  download("TRKI_C1_grammar_errors_backup_"+d+".json",JSON.stringify({format:"TRKI-C1-GRAMMAR-ERROR-BACKUP",version:1.1,exportedAt:new Date().toISOString(),db,session:savedGrammarSession()},null,2))
 };
 document.getElementById("exportContent").onclick=()=>{
   const d=new Date().toISOString().slice(0,10);
@@ -389,7 +382,7 @@ document.getElementById("exportContent").onclick=()=>{
 };
 document.getElementById("importBackup").onchange=e=>readJSON(e.target.files[0],x=>{
   const obj=x&&x.db?x.db:x;if(!obj||!Array.isArray(obj.items)){alert("不是有效的错题库备份");return}
-  db=obj;save();setupRuleFilter();renderOverview();renderRules();renderAll();alert("错题库备份已恢复")
+  db=obj;save();if(x&&x.session)localStorage.setItem(SESSION_KEY,JSON.stringify(x.session));else localStorage.removeItem(SESSION_KEY);setupRuleFilter();renderOverview();renderRules();renderAll();renderResume();alert("错题库备份已恢复")
 });
 
 setupRuleFilter();renderOverview();renderRules();renderAll();
