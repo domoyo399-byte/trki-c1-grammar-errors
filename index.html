@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<title>ТРКИ-C1 语法错题库 v2.1.1</title>
+<title>ТРКИ-C1 语法错题库 v2.2</title>
 <style>
 :root{
   --bg:#f5f5f8;--p:#fff;--t:#17171a;--m:#777780;--l:#dddde5;
@@ -93,12 +93,50 @@ body.in-practice .hub-fab{display:inline-flex}
   .wrap{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
 }
 
+
+/* v2.2 structured feedback */
+.practice-top{display:grid;grid-template-columns:auto 1fr auto;align-items:center}
+.practice-hub{
+  text-decoration:none;color:var(--t);background:var(--p);border:1px solid var(--l);
+  border-radius:12px;padding:9px 11px;font-size:12px;font-weight:800;white-space:nowrap
+}
+body.in-practice .hub-fab{display:none}
+.feedback-head{display:grid;gap:5px}
+.correct-answer{font-size:18px;font-weight:800;margin-top:3px}
+.core-explain{background:var(--bg);border-radius:14px;padding:12px;margin-top:12px}
+.core-block+.core-block{margin-top:10px;padding-top:10px;border-top:1px solid var(--l)}
+.core-label{font-size:12px;color:var(--m);font-weight:800;margin-bottom:4px}
+.core-text{line-height:1.65}
+.explain-details{margin-top:10px;border:1px solid var(--l);border-radius:14px;overflow:hidden;background:var(--p)}
+.explain-details summary{cursor:pointer;list-style:none;padding:12px 13px;font-weight:800;display:flex;justify-content:space-between;gap:8px}
+.explain-details summary::-webkit-details-marker{display:none}
+.explain-body{padding:0 12px 12px}
+.option-analysis{display:grid;gap:9px}
+.option-card{border:1px solid var(--l);border-radius:13px;padding:11px;background:var(--bg)}
+.option-card.correct-opt{border-color:var(--ac)}
+.option-title{font-weight:900;font-size:16px}
+.option-tag{font-size:11px;color:var(--m);margin-left:6px}
+.option-line{font-size:13px;line-height:1.65;margin-top:5px}
+.option-line b{color:var(--t)}
+.data-warning{background:var(--mid);border-radius:12px;padding:10px 11px;margin-top:10px;font-size:13px;line-height:1.6}
+.quality-note{margin-top:10px;padding:10px 11px;border-radius:12px;background:var(--chip);font-size:12px;color:var(--m);line-height:1.55}
+.choicegrid button{display:flex;gap:10px;align-items:flex-start}
+.choice-label{font-weight:900;min-width:24px}
+.choice-text{min-width:0}
+.feedback .rulecard{margin-top:0}
+@media(max-width:650px){
+  .practice-top{grid-template-columns:auto 1fr auto}
+  .practice-hub{padding:8px 9px}
+  .feedback{padding:12px}
+  .correct-answer{font-size:17px}
+}
+
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="hero">
-    <h1>ТРКИ-C1 语法错题库 <span style="font-size:13px;color:var(--m);font-weight:600">v2.1.1</span></h1>
+    <h1>ТРКИ-C1 语法错题库 <span style="font-size:13px;color:var(--m);font-weight:600">v2.2</span></h1>
     <div class="sub">只收真正做错的语法题；既看“哪一道题错”，也看“哪个语法规则反复出问题”。</div>
   </div>
 
@@ -147,6 +185,7 @@ body.in-practice .hub-fab{display:inline-flex}
         <button class="modebtn" data-mode="mixed" onclick="startReview('mixed')">原题 + 变式混合</button>
       </div>
       <div class="muted" style="margin-top:10px">点任一模式后会进入独立练习页。选择题直接显示选项；填空题必须带原型/提示，否则不会强迫你盲填。</div>
+      <div id="qualityNote" class="quality-note"></div>
     </div>
   </section>
 
@@ -154,7 +193,7 @@ body.in-practice .hub-fab{display:inline-flex}
     <div class="practice-top">
       <button onclick="exitPractice()">← 退出练习</button>
       <div class="practice-title" id="practiceTitle">错题练习</div>
-      <span style="width:76px"></span>
+      <a class="practice-hub" href="https://domoyo399-byte.github.io/trki-c1-hub/">⌂ 学习中心</a>
     </div>
     <div id="testArea" class="testbox"><div class="muted" style="text-align:center">准备开始。</div></div>
   </section>
@@ -258,6 +297,120 @@ const DEMO=[
   }
 ];
 
+
+const BUILTIN_VARIANT_DETAILS={"GE-C1-20261013-004-V1": {"cue": "своей прежней позиции：这里说的是“坚持原来的立场”，不是克制情绪或耽搁。", "reason": "придерживаться + Р.п. 可表示坚持观点、立场、原则：придерживаться позиции / мнения / правил。", "decisionRule": "看到 мнение / позиция / правило / принцип 等“观点、规则”名词时，优先核对 придерживаться + Р.п.。", "examples": ["Она придерживается прежней позиции.", "Я придерживаюсь другого мнения."]}, "GE-C1-20261013-004-V2": {"cue": "от резкого ответа 是关键：от + Р.п. 表示“忍住、不去做某事”的对象。", "reason": "удержаться от + Р.п. = 克制住、忍住不做：удержаться от ответа / смеха / комментария。", "decisionRule": "如果是“忍住不做某事”，找 удержаться / сдержаться от + Р.п.；如果是“持有观点”，才是 придерживаться + Р.п.。", "examples": ["Он удержался от резкого ответа.", "Она едва удержалась от смеха."]}, "GE-C1-20261013-005-V1": {"cue": "особого внимания 是第二格，句意是“这些结果值得特别关注”。", "reason": "заслуживать + Р.п. = 值得、配得上：заслуживать внимания / уважения / оценки。", "decisionRule": "评价某事“值得某种认可/关注”时，用 заслуживать + Р.п.。", "examples": ["Эти результаты заслуживают особого внимания."]}, "GE-C1-20261013-005-V2": {"cue": "клиентов 是直接宾语，公司在做的是“为客户提供服务”。", "reason": "обслуживать кого/что = 服务、维护：обслуживать клиентов / оборудование。", "decisionRule": "客户、设备、账户等作为被服务对象时，用 обслуживать + В.п.；这不是“值得”的 заслуживать。", "examples": ["Наша компания обслуживает клиентов круглосуточно."]}, "GE-C1-20261013-006-V1": {"cue": "свои выводы + в докладе：要在报告中“陈述研究结论”。", "reason": "изложить что? = 有条理地陈述信息、观点、事实：изложить выводы / позицию / просьбу。", "decisionRule": "宾语是观点、事实、请求、结论，并有 письмо / доклад / заявление 等书面媒介时，优先考虑 изложить。", "examples": ["Исследователь подробно изложил свои выводы в докладе."]}, "GE-C1-20261013-006-V2": {"cue": "ответственность ... на коллегу 是固定语义：把责任转到同事身上。", "reason": "переложить ответственность на кого-либо = 转嫁责任。", "decisionRule": "пере- 在这里与“转移”一致；看到 ответственность + на кого 优先核对 переложить。", "examples": ["Он переложил ответственность за ошибку на коллегу."]}, "GE-C1-20261013-015-V1": {"cue": "Боюсь + 不希望发生的动作 опоздать，是典型“担心会……”结构。", "reason": "боюсь, как бы не + инфинитив 表示担心某件不希望发生的事。", "decisionRule": "看到 боюсь / опасаюсь，并且后面是不希望发生的事件，同一主语时优先用 как бы не + инф.", "examples": ["Боюсь, как бы не опоздать на последний поезд."]}, "GE-C1-20261013-015-V2": {"cue": "句子是反事实条件：“要不是大雨，我们就会去郊外”。", "reason": "если бы не + 名词短语 = 要不是……；主句常有 бы。", "decisionRule": "如果是“要不是 X，就会 Y”的反事实条件，选 если бы не；不要和担忧结构 как бы не 混淆。", "examples": ["Если бы не сильный дождь, мы бы поехали за город."], "question": "___ сильный дождь, мы бы поехали за город."}, "GE-C1-20261013-017-V1": {"cue": "проверить факты 应先发生，публиковать статью 后发生。", "reason": "прежде чем + инфинитив = 在做后一动作之前先做前一动作。", "decisionRule": "先判断两个动作的时间顺序；A 先于 B → A, прежде чем B。", "examples": ["Нужно проверить факты, прежде чем публиковать статью."]}, "GE-C1-20261013-017-V2": {"cue": "прочитайте условия 是签合同前应先做的事。", "reason": "Прежде чем подписать договор = 在签署合同之前。", "decisionRule": "句首也可用 прежде чем + инфинитив；如果强调先后顺序，不要选让步/同时结构。", "examples": ["Прежде чем подписать договор, внимательно прочитайте условия."]}, "GE-C1-20261013-020-V1": {"cue": "Целый день погода менялась：雪和太阳是实际轮流出现的。", "reason": "то ... то ... 表示两个动作或状态交替出现。", "decisionRule": "客观观察到 A/B 轮流发生 → то ... то ...；说话者不确定是 A 还是 B → то ли ... то ли ...。", "examples": ["То шёл снег, то выглядывало солнце."]}, "GE-C1-20261013-020-V2": {"cue": "Я не расслышал 明确说明说话者没有听清，不知道是“да”还是“нет”。", "reason": "то ли ... то ли ... 表示对两种可能的犹疑、不确定。", "decisionRule": "“不知道究竟 A 还是 B” → то ли ... то ли ...；不是实际交替。", "examples": ["Я не расслышал: то ли он сказал «да», то ли «нет»."]}, "GE-C1-20261013-021-V1": {"cue": "меры 是措施，语境问的是能否真正减少开支。", "reason": "эффективный = 有效的、能产生预期结果的：эффективные меры。", "decisionRule": "方法、措施、政策、机制强调“管不管用”时用 эффективный；强调外观和印象才是 эффектный。", "examples": ["Для сокращения расходов нужны эффективные меры."]}, "GE-C1-20261013-021-V2": {"cue": "платье + привлекло внимание：强调视觉上吸睛、给人强烈印象。", "reason": "эффектный = 引人注目的、很有视觉效果的：эффектное платье。", "decisionRule": "外貌、服装、出场、表演强调“抢眼”时用 эффектный；不能用 эффективный 表示“好看”。", "examples": ["Её эффектное платье сразу привлекло внимание."]}, "GE-C1-20261013-022-V1": {"cue": "остывшую 已说明水已经放凉；需要的是“煮沸处理过的水”。", "reason": "кипячёный 表示“经过煮沸处理的”；即使已经冷却仍然是 кипячёная вода。", "decisionRule": "处理结果 → кипячёный；正在沸腾 → кипящий；抽象“活跃旺盛” → кипучий。", "examples": ["Врач посоветовал пить остывшую кипячёную воду."]}, "GE-C1-20261013-022-V2": {"cue": "из чайника шёл пар 说明水此刻正处于高温沸腾状态。", "reason": "кипящий = 正在沸腾的，是 кипеть 的现在时主动形动词形式。", "decisionRule": "描述“此刻正在沸腾”选 кипящий；“曾经煮沸过”才是 кипячёный。", "examples": ["Из чайника шёл пар: вода была кипящей."]}, "GE-C1-20261013-024-V1": {"cue": "растение + система 是植物学术语“根系”。", "reason": "корневая система 是固定术语，корневой 表示“与根有关的”。", "decisionRule": "植物学“根系”整体记 корневая система；不要因同根就换成 коренной / корешковый。", "examples": ["Это растение имеет мощную корневую систему."]}, "GE-C1-20261013-024-V2": {"cue": "изменения 说的是社会/制度层面的“根本性变化”。", "reason": "коренной 在此表示根本的、彻底的：коренные изменения。", "decisionRule": "抽象的“根本性改变/原因”常用 коренной；植物根系才用 корневой。", "examples": ["В стране назрели коренные изменения."]}, "GE-C1-20261013-029-V1": {"cue": "中心动词是 раскаиваться，必须按它自己的格支配选介词。", "reason": "раскаиваться в чём? → в + Пр.п.：раскаиваться в поступке / ошибке / содеянном。", "decisionRule": "先找中心动词，再回忆它的介词+格；不要按中文“对……后悔”直接猜介词。", "examples": ["Он искренне раскаивается в своём поступке."]}, "GE-C1-20261013-029-V2": {"cue": "中心动词换成了 сожалеть，因此格支配也跟着换。", "reason": "сожалеть о чём? → о + Пр.п.：сожалеть о решении / случившемся。", "decisionRule": "раскаиваться → в + Пр.п.；сожалеть → о + Пр.п.。同样是“后悔”，俄语支配不同。", "examples": ["Она сожалеет о своём решении."]}};
+const RULE_OPTION_ANALYSIS={"C1-LEX-PRIDERZHIVATSYA": [{"match": "придерж", "lemma": "приде́рживаться", "structure": "при- + -держ- + -ива- + -ться", "meaningZh": "坚持、持有（观点/立场）；遵循（规则）", "governance": "придерживаться + Р.п.", "collocations": ["придерживаться мнения", "придерживаться позиции", "придерживаться правил"], "morphologyNote": "与 держать 同词族；抽象义已词汇化，不能只凭 при- 猜。", "whyHere": "适合“观点、立场、原则”语境。"}, {"match": "сдерж", "lemma": "сде́рживаться", "structure": "с- + -держ- + -ива- + -ться", "meaningZh": "克制自己、忍住情绪或反应", "governance": "常见 сдерживаться от + Р.п. / сдерживаться, чтобы...", "collocations": ["сдерживаться от смеха", "сдерживаться, чтобы не ответить грубо"], "morphologyNote": "前缀可提示约束，但实际搭配应整体记。", "whyHere": "不表示“持有某种意见”。"}, {"match": "удерж", "lemma": "уде́рживаться / удержа́ться", "structure": "у- + -держ- + -ива-/-а- + -ться", "meaningZh": "保持住；克制住、不去做", "governance": "удержаться от + Р.п.; удерживаться на + Пр.п.", "collocations": ["удержаться от ответа", "удерживаться на месте"], "morphologyNote": "同属 держать 词族，不宜只靠 у- 推义。", "whyHere": "有 от + Р.п. 且表示忍住时很合适。"}, {"match": "задерж", "lemma": "заде́рживаться", "structure": "за- + -держ- + -ива- + -ться", "meaningZh": "耽搁、滞留、晚走", "governance": "задерживаться на работе / в пути", "collocations": ["задерживаться на работе", "задерживаться в пути"], "morphologyNote": "现代常用义已固定。", "whyHere": "与观点或克制反应无关。"}], "C1-LEX-ZASLUZHIVAT": [{"match": "заслуж", "lemma": "заслу́живать", "structure": "за- + -служ- + -ива- + -ть", "meaningZh": "值得、配得上", "governance": "заслуживать + Р.п.", "collocations": ["заслуживать внимания", "заслуживать уважения", "заслуживать высокой оценки"], "morphologyNote": "与 служить 同词族，但“值得”是固定抽象义，不能机械由 за- 推出。", "whyHere": "评价某事值得认可、关注时使用。"}, {"match": "обслуж", "lemma": "обслу́живать", "structure": "об- + -служ- + -ива- + -ть", "meaningZh": "服务、维护", "governance": "обслуживать кого/что + В.п.", "collocations": ["обслуживать клиентов", "обслуживать оборудование"], "morphologyNote": "现代词义已词汇化。", "whyHere": "客户/设备是被服务对象时使用。"}, {"match": "прислуж", "lemma": "прислу́живать", "structure": "при- + -служ- + -ива- + -ть", "meaningZh": "侍候、服侍", "governance": "прислуживать кому? + Д.п.; прислуживать за столом", "collocations": ["прислуживать гостям", "прислуживать за столом"], "morphologyNote": "при- 可与“在旁”有联系，但不能推广到所有 при- 动词。", "whyHere": "带有侍从式服务色彩。"}, {"match": "дослуж", "lemma": "дослу́живать / дослужи́ть", "structure": "до- + -служ- + -ива-/-и- + -ть", "meaningZh": "任职、服役到某个期限/阶段", "governance": "常见 дослужить до + Р.п.", "collocations": ["дослужить до пенсии", "дослужить до звания"], "morphologyNote": "до- 在这里与达到终点有关。", "whyHere": "不表示“值得评价”或“服务客户”。"}], "C1-LEX-IZLOZHIT": [{"match": "излож", "lemma": "изложи́ть", "structure": "из- + -лож-（-лаг- 交替词族）+ -и- + -ть", "meaningZh": "陈述、阐述", "governance": "изложить что? + В.п.", "collocations": ["изложить просьбу", "изложить позицию", "изложить выводы"], "morphologyNote": "“书面陈述”已是固定抽象义，不可机械由 из- 推出。", "whyHere": "宾语是信息、观点、请求、结论时合适。"}, {"match": "перелож", "lemma": "переложи́ть", "structure": "пере- + -лож- + -и- + -ть", "meaningZh": "挪放；转嫁、转交", "governance": "переложить что на кого/что", "collocations": ["переложить ответственность на коллегу", "переложить бумаги в папку"], "morphologyNote": "пере- 在转移义中有可迁移提示。", "whyHere": "责任/任务被转移时合适。"}, {"match": "вылож", "lemma": "вы́ложить", "structure": "вы- + -лож- + -и- + -ть", "meaningZh": "摆出、拿出；上传发布", "governance": "выложить что?", "collocations": ["выложить вещи", "выложить фотографии в сеть"], "morphologyNote": "вы- 常有向外/拿出的方向提示，但网络义已词汇化。", "whyHere": "不表示正式阐述。"}, {"match": "улож", "lemma": "уложи́ть", "structure": "у- + -лож- + -и- + -ть", "meaningZh": "放好、装好；使躺下", "governance": "уложить что/кого", "collocations": ["уложить вещи в чемодан", "уложить ребёнка спать"], "morphologyNote": "常强调安放后的结果。", "whyHere": "与信息陈述、责任转嫁不同。"}], "C1-SYNTAX-KAK-BY-NE": [{"match": "как бы не", "lemma": "как бы не", "structure": "固定担忧结构", "meaningZh": "恐怕会……、担心会……", "governance": "боюсь/опасаюсь, как бы не + инф./从句", "collocations": ["как бы не опоздать", "как бы он не заболел"], "morphologyNote": "这里的 не 是结构组成部分，不按普通否定机械理解。", "whyHere": "有 боюсь/опасаюсь + 不希望发生的事件时合适。"}, {"match": "если бы не", "lemma": "если бы не", "structure": "反事实条件结构", "meaningZh": "要不是……", "governance": "если бы не + 名词/情况；主句常含 бы", "collocations": ["Если бы не дождь, мы бы пошли гулять."], "morphologyNote": "表达条件，不表达担忧。", "whyHere": "出现“要不是 X，就会 Y”的条件关系时合适。"}, {"match": "когда бы не", "lemma": "когда бы не", "structure": "非本题标准担忧结构", "meaningZh": "本题中不能表达“担心会……”", "governance": "", "collocations": [], "morphologyNote": "不能替代 как бы не。", "whyHere": "与本题语义关系不匹配。"}, {"match": "хотя бы не", "lemma": "хотя бы не", "structure": "хотя бы + 否定成分", "meaningZh": "至少不要……等语义", "governance": "", "collocations": [], "morphologyNote": "不是 боюсь 后的标准担忧结构。", "whyHere": "本题需要担忧结构时不合适。"}, {"match": "прежде чем", "lemma": "прежде чем", "structure": "时间连接结构", "meaningZh": "在……之前", "governance": "прежде чем + инф./从句", "collocations": ["прежде чем подписать договор"], "morphologyNote": "表达先后时间关系。", "whyHere": "若句子是反事实条件则不合适。"}], "C1-SYNTAX-PREZHDE-CHEM": [{"match": "прежде чем", "lemma": "прежде чем", "structure": "时间连接结构", "meaningZh": "在……之前", "governance": "прежде чем + инф./从句", "collocations": ["прежде чем публиковать", "прежде чем подписать"], "morphologyNote": "核心是动作先后。", "whyHere": "A 先发生、B 后发生时合适。"}, {"match": "как бы ни", "lemma": "как бы ни", "structure": "让步结构", "meaningZh": "无论怎样……", "governance": "как бы ни + 谓语/形容词副词结构", "collocations": ["Как бы он ни старался..."], "morphologyNote": "ни 与让步呼应。", "whyHere": "不是单纯的动作先后。"}, {"match": "в то время как", "lemma": "в то время как", "structure": "同时/对照连接结构", "meaningZh": "当……同时；而……", "governance": "连接两个分句", "collocations": ["Он работал, в то время как остальные отдыхали."], "morphologyNote": "常表达同时或对照。", "whyHere": "不表示“先……再……”。"}, {"match": "если", "lemma": "если", "structure": "条件连接词", "meaningZh": "如果", "governance": "если + 条件从句", "collocations": ["Если будет время..."], "morphologyNote": "表达条件关系。", "whyHere": "没有条件关系时不合适。"}], "C1-COORD-TO-TO-VS-TO-LI": [{"match": "то ли", "lemma": "то ли ... то ли ...", "structure": "并列不确定结构", "meaningZh": "不知道是……还是……", "governance": "то ли A, то ли B", "collocations": ["то ли шутит, то ли говорит серьёзно"], "morphologyNote": "核心是说话者无法确定事实。", "whyHere": "有“不知道/没听清/拿不准”线索时合适。"}, {"match": "не то", "lemma": "не то ... не то ...", "structure": "模糊判断结构", "meaningZh": "似乎是……又似乎是……", "governance": "не то A, не то B", "collocations": [], "morphologyNote": "也带不确定色彩。", "whyHere": "不用于明确观察到的反复交替。"}, {"match": "то ... то", "lemma": "то ... то ...", "structure": "交替并列结构", "meaningZh": "一会儿……一会儿……", "governance": "то A, то B", "collocations": ["то дождь, то солнце"], "morphologyNote": "核心是实际状态轮流出现。", "whyHere": "有 менялся / попеременно 等交替线索时合适。"}, {"match": "или", "lemma": "или ... или ...", "structure": "选择结构", "meaningZh": "或者……或者……", "governance": "или A, или B", "collocations": [], "morphologyNote": "表示选择/两种可能，不突出交替。", "whyHere": "没有交替或主观犹疑的专门意义。"}, {"match": "либо", "lemma": "либо ... либо ...", "structure": "选择结构", "meaningZh": "要么……要么……", "governance": "либо A, либо B", "collocations": [], "morphologyNote": "偏选择。", "whyHere": "不等于 то ли ... то ли ... 的“不确定”。"}, {"match": "и ... и", "lemma": "и ... и ...", "structure": "并列兼有结构", "meaningZh": "既……又……", "governance": "и A, и B", "collocations": [], "morphologyNote": "表示两者兼有。", "whyHere": "与“二选一/不确定”不同。"}], "C1-LEX-EFFEKTIVNYY": [{"match": "эффектив", "lemma": "эффекти́вный", "structure": "эффект- + -ивн- + -ый", "meaningZh": "有效的、高效的", "governance": "", "collocations": ["эффективный способ", "эффективные меры", "эффективное решение"], "morphologyNote": "-ивн- 可作辨形线索，但不能普遍理解为“有效”；整个词义需整体掌握。", "whyHere": "强调实际结果、是否管用。"}, {"match": "эффектн", "lemma": "эффе́ктный", "structure": "эффект- + -н- + -ый", "meaningZh": "引人注目的、很有视觉效果的", "governance": "", "collocations": ["эффектная внешность", "эффектное платье", "эффектный выход"], "morphologyNote": "与 эффект 同根，但现代意义偏向“给人强烈印象”。", "whyHere": "强调外观、呈现、视觉印象。"}], "C1-LEX-KIPYACHENYY": [{"match": "кипуч", "lemma": "кипу́чий", "structure": "кип- + -уч- + -ий", "meaningZh": "充满活力的、沸腾般热烈的", "governance": "", "collocations": ["кипучая деятельность", "кипучая энергия"], "morphologyNote": "现代抽象义已形容词化。", "whyHere": "通常不用于“放凉后饮用的水”。"}, {"match": "кипящ", "lemma": "кипя́щий", "structure": "кипеть → кипящий（现在时主动形动词）", "meaningZh": "正在沸腾的", "governance": "", "collocations": ["кипящая вода", "кипящий котёл"], "morphologyNote": "强调此刻正在进行的沸腾状态。", "whyHere": "有蒸汽、正在沸腾等当前状态线索时合适。"}, {"match": "кипяч", "lemma": "кипячёный", "structure": "кипятить → кипячёный（结果性质形容词）", "meaningZh": "煮沸过的", "governance": "", "collocations": ["кипячёная вода", "кипячёное молоко"], "morphologyNote": "强调经过煮沸处理；冷却后仍可称 кипячёный。", "whyHere": "强调处理结果时合适。"}], "C1-LEX-KORNEVAYA": [{"match": "корнев", "lemma": "корнево́й", "structure": "корень → корн- + -ев- + -ой", "meaningZh": "与根有关的", "governance": "", "collocations": ["корневая система", "корневые волоски"], "morphologyNote": "用于植物学“根系”等直接与根相关的概念。", "whyHere": "植物“根系”固定说 корневая система。"}, {"match": "коренн", "lemma": "коренно́й", "structure": "корень 词族 → коренной", "meaningZh": "根本的；土生土长的", "governance": "", "collocations": ["коренные изменения", "коренной житель"], "morphologyNote": "现代抽象义已词汇化，不能只凭“根”理解为植物根系。", "whyHere": "抽象“根本性”语境合适。"}, {"match": "корешков", "lemma": "корешко́вый", "structure": "корешок → корешк- + -ов- + -ый", "meaningZh": "根须/小根相关；常见于神经根术语", "governance": "", "collocations": ["корешковый синдром", "корешковая боль"], "morphologyNote": "来自 корешок，不等于通用植物术语 корневой。", "whyHere": "不构成 корневая система 这一固定术语。"}], "C1-GOV-RASKAIVATSYA-V": [{"match": "^о$|о том", "lemma": "о + Пр.п.", "structure": "介词 о + 前置格", "meaningZh": "关于；在 сожалеть о чём 等动词后可表示“对……感到遗憾”", "governance": "сожалеть о + Пр.п.", "collocations": ["сожалеть о решении", "говорить о проблеме"], "morphologyNote": "介词选择由中心动词支配决定。", "whyHere": "如果中心动词是 сожалеть 合适；若是 раскаиваться 则不合适。"}, {"match": "^в$|в том", "lemma": "в + Пр.п.", "structure": "介词 в + 前置格", "meaningZh": "在 раскаиваться в чём 中表示悔过的内容", "governance": "раскаиваться в + Пр.п.", "collocations": ["раскаиваться в поступке", "раскаиваться в содеянном"], "morphologyNote": "需把动词和介词+格整体记忆。", "whyHere": "中心动词是 раскаиваться 时合适。"}, {"match": "^с$|с тем", "lemma": "с + Т.п.", "structure": "介词 с + 工具格", "meaningZh": "与……一起/带着……等", "governance": "", "collocations": ["с другом", "с этим"], "morphologyNote": "不是 раскаиваться / сожалеть 在此义下的支配。", "whyHere": "本题语义不合。"}, {"match": "^на$|на том", "lemma": "на + Пр.п.", "structure": "介词 на + 前置格", "meaningZh": "在……上/关于某些固定结构", "governance": "", "collocations": ["на работе", "на этом"], "morphologyNote": "不是本题动词的规范支配。", "whyHere": "本题语义不合。"}]};
+
+function stripOptionLabel(s){
+  return String(s||"").replace(/^\s*[A-DА-Г]\s*[\.\)）:：、]\s*/i,"").trim()
+}
+function optionCore(s){return norm(stripOptionLabel(s))}
+function displayOption(op,i){
+  const raw=String(op||"");
+  if(/^\s*[A-DА-Г]\s*[\.\)）:：、]/i.test(raw))return {label:"",text:raw};
+  const labs=["А","Б","В","Г","Д","Е"];
+  return {label:(labs[i]||String(i+1))+")",text:raw}
+}
+function hasIndependentExplanation(q){
+  return !!(q && ((q.explanationDetail && (q.explanationDetail.cue||q.explanationDetail.reason)) || String(q.explanation||"").trim()))
+}
+function buildRuleOptionAnalysis(ruleId,options){
+  const defs=RULE_OPTION_ANALYSIS[ruleId]||[];
+  return (options||[]).map(op=>{
+    const core=stripOptionLabel(op);
+    const d=defs.find(x=>{
+      try{return new RegExp(x.match,"i").test(core)}catch(e){return false}
+    });
+    return d?{option:op,...d}:null
+  }).filter(Boolean)
+}
+function applyBuiltinFixes(){
+  db.items.forEach(it=>{
+    if(!it.optionAnalysis || !it.optionAnalysis.length)it.optionAnalysis=buildRuleOptionAnalysis(it.ruleId,it.options||[]);
+    (it.variants||[]).forEach(v=>{
+      const p=BUILTIN_VARIANT_DETAILS[v.id];
+      if(p){
+        if(p.question)v.question=p.question;
+        if(!v.explanationDetail)v.explanationDetail={cue:p.cue,reason:p.reason,decisionRule:p.decisionRule,examples:p.examples||[]};
+        if(!v.explanation)v.explanation=p.reason;
+      }
+      if(!v.optionAnalysis || !v.optionAnalysis.length)v.optionAnalysis=buildRuleOptionAnalysis(it.ruleId,v.options||[]);
+    })
+  })
+}
+function parseLegacyExplanation(text){
+  const t=String(text||"");
+  const sec={};
+  const re=/【([^】]+)】([\s\S]*?)(?=【[^】]+】|$)/g;
+  let m;while((m=re.exec(t)))sec[m[1].trim()]=m[2].trim();
+  const whyKey=Object.keys(sec).find(k=>k.startsWith("为什么选"));
+  const wrongKey=Object.keys(sec).find(k=>k.startsWith("你的")&&k.includes("为什么"));
+  const formKey=Object.keys(sec).find(k=>k.startsWith("构词"));
+  return {
+    summary:sec["题意"]||"",
+    cue:sec["考点与线索"]||sec["线索"]||"",
+    reason:whyKey?sec[whyKey]:"",
+    wrongContrast:wrongKey?sec[wrongKey]:"",
+    wordFormation:formKey?sec[formKey]:"",
+    decisionRule:sec["下次怎么选"]||"",
+    examples:sec["对比"]?[sec["对比"]]:[]
+  }
+}
+function getExplanationDetail(q,isVariant=false){
+  if(q&&q.explanationDetail)return q.explanationDetail;
+  if(!isVariant && q&&q.explanation)return parseLegacyExplanation(q.explanation);
+  return null
+}
+function isCorrectOptionText(option,correct){
+  return optionCore(option)===optionCore(correct)
+}
+function questionIssues(q,{variant=false}={}){
+  const issues=[];
+  if(!q||!String(q.id||"").trim())issues.push("缺少唯一 ID");
+  if(!q||!String(q.question||"").trim())issues.push("缺少题干");
+  if(!q||!String(q.correctAnswer||"").trim())issues.push("缺少正确答案");
+  const ops=(q&&q.options||[]).filter(x=>String(x||"").trim());
+  if((q&&q.questionType)==="choice" || ops.length){
+    if(ops.length<2)issues.push("选择题缺少完整选项");
+    else if(q.correctAnswer && !ops.some(op=>isCorrectOptionText(op,q.correctAnswer)))issues.push("正确答案不在选项中");
+  }else{
+    const hint=extractFillHint(q||{});
+    if(!hint)issues.push("填空题缺少原型/提示");
+  }
+  if(variant&&!hasIndependentExplanation(q))issues.push("变式缺少独立解析");
+  return issues
+}
+function validateDatabase(){
+  const seen=new Set(),duplicates=new Set();let badVariants=0,badOriginals=0;
+  db.items.forEach(it=>{
+    if(seen.has(it.id))duplicates.add(it.id);seen.add(it.id);
+    it._issues=questionIssues(it,{variant:false});
+    if(it._issues.length)badOriginals++;
+    (it.variants||[]).forEach(v=>{
+      if(seen.has(v.id))duplicates.add(v.id);seen.add(v.id);
+      v._issues=questionIssues(v,{variant:true});
+      if(v._issues.length)badVariants++
+    })
+  });
+  return {badVariants,badOriginals,duplicates:[...duplicates]}
+}
+function variantUsable(v){return !questionIssues(v,{variant:true}).length}
+function targetKey(kind,variantId){return kind==="variant"?String(variantId):"original"}
+function targetHistory(it,key){
+  return (it.history||[]).filter(h=>key==="original"?h.kind==="original":h.variantId===key)
+}
+function targetStable(it,key){
+  const h=recent(targetHistory(it,key),3);
+  return h.length===3&&h.every(x=>x.correct)
+}
+function targetDue(it,key){
+  return (it.targetDue&&it.targetDue[key]!==undefined)?it.targetDue[key]:(it.nextDue||0)
+}
+function syncItemNextDue(it){
+  const vals=[targetDue(it,"original"),...(it.variants||[]).map(v=>targetDue(it,v.id))].filter(x=>Number.isFinite(Number(x))).map(Number);
+  if(vals.length)it.nextDue=Math.min(...vals)
+}
+
 function clone(x){return JSON.parse(JSON.stringify(x))}
 function norm(s){return (s||"").toLowerCase().replace(/ё/g,"е").trim().replace(/\s+/g," ")}
 function esc(s=""){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
@@ -267,11 +420,15 @@ function load(){
   localStorage.setItem(STORAGE_KEY,JSON.stringify(x));return x;
 }
 let db=load(),session={deck:[],i:0,mode:"mixed",pending:null};
+applyBuiltinFixes();
+let dataQuality=validateDatabase();
 function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(db))}
+save();
 function recent(arr,n){return (arr||[]).slice(-n)}
 function itemStable(it){
-  const h=recent(it.history,3);
-  return h.length===3 && h.every(x=>x.correct) && h.some(x=>x.kind==="variant");
+  const originalOK=targetStable(it,"original");
+  const variantOK=(it.variants||[]).some(v=>targetStable(it,v.id));
+  return originalOK&&variantOK
 }
 function allHistory(){return db.items.flatMap(it=>(it.history||[]).map(h=>({...h,ruleId:it.ruleId}))).sort((a,b)=>a.time-b.time)}
 function ruleStats(){
@@ -290,7 +447,21 @@ function ruleStats(){
     return r;
   }).sort((a,b)=>(b.weak-a.weak)||(a.acc-b.acc));
 }
+function renderQualityNote(){
+  dataQuality=validateDatabase();
+  const el=document.getElementById("qualityNote");if(!el)return;
+  if(!dataQuality.badVariants&&!dataQuality.badOriginals&&!dataQuality.duplicates.length){
+    el.textContent="数据校验通过：当前可训练题均有可作答信息；变式具备独立解析。";
+  }else{
+    const parts=[];
+    if(dataQuality.badVariants)parts.push(`${dataQuality.badVariants} 道变式被暂时隔离，不进入训练`);
+    if(dataQuality.badOriginals)parts.push(`${dataQuality.badOriginals} 道原题数据需修复`);
+    if(dataQuality.duplicates.length)parts.push(`发现 ${dataQuality.duplicates.length} 个重复 ID`);
+    el.textContent="⚠️ "+parts.join("；")+"。缺解析的变式不会再偷偷套用原题解析。";
+  }
+}
 function renderOverview(){
+  renderQualityNote();
   document.getElementById("totalN").textContent=db.items.length;
   const rs=ruleStats();
   document.getElementById("ruleN").textContent=rs.length;
@@ -322,12 +493,15 @@ function setupRuleFilter(){
   document.getElementById("ruleFilter").innerHTML='<option value="">全部语法点</option>'+rs.map(r=>`<option value="${esc(r.ruleId)}">${esc(r.ruleName)}</option>`).join("");
 }
 function cardHTML(it){
+  const det=getExplanationDetail(it,false)||{};
   return `<div class="card">
     <div class="question ru">${esc(it.question)}</div>
     <div class="badges">${(it.tags||[]).map(t=>`<span class="badge">${esc(t)}</span>`).join("")}</div>
     <div class="answerline">你的原答案：<span class="wrong">${esc(it.userAnswer||"—")}</span></div>
     <div class="answerline">正确答案：<span class="right">${esc(it.correctAnswer)}</span></div>
-    <div class="rulecard"><b>${esc(it.ruleName)}</b><div class="muted">${esc(it.explanation)}</div></div>
+    ${det.cue?`<div class="core-explain"><div class="core-block"><div class="core-label">关键线索</div><div class="core-text">${esc(det.cue)}</div></div>${det.reason?`<div class="core-block"><div class="core-label">为什么选它</div><div class="core-text">${esc(det.reason)}</div></div>`:""}</div>`:""}
+    ${renderOptionAnalysis(it,it)}
+    ${renderRuleDetails(it,it,{kind:"original"})}
     <div class="muted" style="margin-top:8px">来源：${esc(it.source||"未标注")} · 变式 ${(it.variants||[]).length} 道 · ${itemStable(it)?"已稳定":"继续复习"}</div>
   </div>`;
 }
@@ -381,16 +555,26 @@ function inputPlan(q,parent){
 document.querySelectorAll(".navbtn").forEach(b=>b.onclick=()=>showView(b.dataset.view));
 
 function buildDeck(mode,ruleId=null){
-  let items=ruleId?db.items.filter(it=>it.ruleId===ruleId):db.items.filter(it=>(it.nextDue||0)<=Date.now());
-  if(!items.length)items=ruleId?db.items.filter(it=>it.ruleId===ruleId):[...db.items];
+  const now=Date.now();
+  const items=ruleId?db.items.filter(it=>it.ruleId===ruleId):[...db.items];
   let deck=[];
   items.forEach(it=>{
-    if(mode==="original"||mode==="mixed")deck.push({itemId:it.id,kind:"original",q:it});
+    if((mode==="original"||mode==="mixed") && !questionIssues(it,{variant:false}).length && targetDue(it,"original")<=now){
+      deck.push({itemId:it.id,kind:"original",q:it,parent:it})
+    }
     if(mode==="variant"||mode==="mixed"){
-      (it.variants||[]).forEach(v=>deck.push({itemId:it.id,kind:"variant",variantId:v.id,q:v,parent:it}))
+      (it.variants||[]).forEach(v=>{
+        if(variantUsable(v)&&targetDue(it,v.id)<=now)deck.push({itemId:it.id,kind:"variant",variantId:v.id,q:v,parent:it})
+      })
     }
   });
-  return deck.sort(()=>Math.random()-.5).slice(0,12);
+  if(!deck.length){
+    items.forEach(it=>{
+      if((mode==="original"||mode==="mixed")&&!questionIssues(it,{variant:false}).length)deck.push({itemId:it.id,kind:"original",q:it,parent:it});
+      if(mode==="variant"||mode==="mixed")(it.variants||[]).forEach(v=>{if(variantUsable(v))deck.push({itemId:it.id,kind:"variant",variantId:v.id,q:v,parent:it})})
+    })
+  }
+  return deck.sort(()=>Math.random()-.5).slice(0,12)
 }
 function startReview(mode){
   session.mode=mode;session.deck=buildDeck(mode);session.i=0;session.pending=null;
@@ -417,7 +601,7 @@ function renderTest(){
   const plan=inputPlan(q,parent);
   let answer="";
   if(plan.type==="choice"){
-    answer=`<div class="choicegrid">${plan.options.map((op,i)=>`<button onclick="submitAnswer('${encodeURIComponent(op)}')">${String.fromCharCode(65+i)}. ${esc(op)}</button>`).join("")}</div>`;
+    answer=`<div class="choicegrid">${plan.options.map((op,i)=>{const d=displayOption(op,i);return `<button onclick="submitAnswer('${encodeURIComponent(op)}')">${d.label?`<span class="choice-label">${esc(d.label)}</span>`:""}<span class="choice-text">${esc(d.text)}</span></button>`}).join("")}</div>`;
   }else if(plan.type==="fill"){
     answer=`<div class="hintbox">原型 / 提示：<b class="ru">${esc(plan.hint)}</b></div>
       <input id="fillAnswer" style="width:100%;margin-top:12px" placeholder="根据原型填写正确形式">
@@ -441,22 +625,76 @@ function submitFill(){const v=(document.getElementById("fillAnswer").value||"").
 
 function revealUnsupported(){
   const d=session.deck[session.i],q=d.q,parent=d.parent||q,fb=document.getElementById("feedbackArea");
-  fb.innerHTML=`<div class="feedback mid"><b>⚠️ 数据待修复</b><br>正确答案：<b>${esc(q.correctAnswer)}</b><div class="rulecard"><b>${esc(parent.ruleName)}</b><div class="muted">${esc(parent.explanation)}</div></div></div>
+  fb.innerHTML=`<div class="feedback mid"><b>⚠️ 数据待修复</b><br>正确答案：<b>${esc(q.correctAnswer)}</b>
+    <div class="data-warning">这道题缺少完整作答数据或独立解析，因此不计成绩，也不会使用原题解析顶替。</div></div>
     <button class="primary" style="width:100%;margin-top:10px" onclick="advanceWithoutRecord()">下一题</button>`;
 }
 function skipUnsupported(){advanceWithoutRecord()}
 function advanceWithoutRecord(){session.pending=null;session.i++;renderTest()}
 
+
+function renderCoreFeedback(q,parent,d){
+  const det=getExplanationDetail(q,d.kind==="variant");
+  if(!det){
+    return `<div class="data-warning">⚠️ 本题暂无独立解析。系统不会拿原题的讲解冒充本题解析；这道变式应在数据修复后再训练。</div>`
+  }
+  const cue=det.cue||"";
+  const reason=det.reason||det.summary||"";
+  return `<div class="core-explain">
+    ${cue?`<div class="core-block"><div class="core-label">题干关键线索</div><div class="core-text">${esc(cue)}</div></div>`:""}
+    ${reason?`<div class="core-block"><div class="core-label">为什么选它？</div><div class="core-text">${esc(reason)}</div></div>`:""}
+  </div>`
+}
+function renderOptionAnalysis(q,parent){
+  const arr=(q.optionAnalysis||[]);
+  if(!arr.length)return "";
+  return `<details class="explain-details">
+    <summary><span>查看${(q.options||[]).length>2?"四个":"各个"}选项的构词与用法区别</span><span>＋</span></summary>
+    <div class="explain-body"><div class="option-analysis">${arr.map(a=>{
+      const good=isCorrectOptionText(a.option,q.correctAnswer);
+      return `<div class="option-card ${good?"correct-opt":""}">
+        <div class="option-title">${esc(a.option||a.lemma||"")}${good?'<span class="option-tag">✓ 本题正确项</span>':""}</div>
+        ${a.lemma&&stripOptionLabel(a.option||"")!==a.lemma?`<div class="option-line"><b>原形：</b>${esc(a.lemma)}</div>`:""}
+        ${a.structure?`<div class="option-line"><b>词形结构：</b>${esc(a.structure)}</div>`:""}
+        ${a.meaningZh?`<div class="option-line"><b>核心义：</b>${esc(a.meaningZh)}</div>`:""}
+        ${a.morphologyNote?`<div class="option-line"><b>构词提示：</b>${esc(a.morphologyNote)}</div>`:""}
+        ${a.governance?`<div class="option-line"><b>搭配 / 支配：</b>${esc(a.governance)}</div>`:""}
+        ${(a.collocations||[]).length?`<div class="option-line"><b>典型搭配：</b>${a.collocations.map(esc).join("；")}</div>`:""}
+        ${a.whyHere?`<div class="option-line"><b>本题判断：</b>${esc(a.whyHere)}</div>`:""}
+      </div>`
+    }).join("")}</div></div>
+  </details>`
+}
+function renderRuleDetails(q,parent,d){
+  const det=getExplanationDetail(q,d.kind==="variant");
+  if(!det)return "";
+  const extra=[];
+  if(det.summary)extra.push(`<div class="option-line"><b>题意：</b>${esc(det.summary)}</div>`);
+  if(det.wrongContrast)extra.push(`<div class="option-line"><b>错误项为什么不成立：</b>${esc(det.wrongContrast)}</div>`);
+  if(det.wordFormation)extra.push(`<div class="option-line"><b>构词 / 词义边界：</b>${esc(det.wordFormation)}</div>`);
+  if(det.decisionRule)extra.push(`<div class="option-line"><b>下次怎么判断：</b>${esc(det.decisionRule)}</div>`);
+  if((det.examples||[]).length)extra.push(`<div class="option-line"><b>对比例句：</b>${det.examples.map(esc).join("<br>")}</div>`);
+  if(!extra.length)return "";
+  return `<details class="explain-details">
+    <summary><span>展开规则与对比例句</span><span>＋</span></summary>
+    <div class="explain-body"><div class="rulecard"><b>${esc(parent.ruleName||"规则")}</b>${extra.join("")}</div></div>
+  </details>`
+}
+
 function submitAnswer(encoded){
   const ans=decodeURIComponent(encoded),d=session.deck[session.i],q=d.q,parent=d.parent||q;
-  const accepted=(q.acceptedAnswers||[q.correctAnswer]).map(norm);
-  const correct=accepted.includes(norm(ans));
+  const accepted=(q.acceptedAnswers||[q.correctAnswer]).map(optionCore);
+  const correct=accepted.includes(optionCore(ans));
   const fb=document.getElementById("feedbackArea");
   fb.innerHTML=`<div class="feedback ${correct?"ok":"bad"}">
-    <b>${correct?"✅ 正确":"❌ 这次不对"}</b><br>
-    你的答案：${esc(ans)}<br>
-    正确答案：<b>${esc(q.correctAnswer)}</b><br>
-    <div class="rulecard"><b>${esc(parent.ruleName)}</b><div class="muted">${esc(parent.explanation)}</div></div>
+    <div class="feedback-head">
+      <b>${correct?"✅ 正确":"❌ 这次不对"}</b>
+      <div>你的答案：${esc(ans)}</div>
+      <div class="correct-answer">正确答案：${esc(q.correctAnswer)}</div>
+    </div>
+    ${renderCoreFeedback(q,parent,d)}
+    ${renderOptionAnalysis(q,parent)}
+    ${renderRuleDetails(q,parent,d)}
     </div>
     <button class="primary" style="width:100%;margin-top:10px" onclick="recordAndNext(${correct})">记录并下一题</button>`;
   Array.from(document.querySelectorAll(".choicegrid button")).forEach(b=>b.disabled=true);
@@ -465,35 +703,51 @@ function submitAnswer(encoded){
 function recordAndNext(correct){
   const {parent,d,ans}=session.pending;
   parent.history=parent.history||[];
+  parent.targetDue=parent.targetDue||{};
   parent.history.push({time:Date.now(),kind:d.kind,variantId:d.variantId||null,correct,answer:ans});
-  if(parent.history.length>40)parent.history=parent.history.slice(-40);
-  const streak=recent(parent.history,3);
-  if(streak.length===3&&streak.every(x=>x.correct)&&streak.some(x=>x.kind==="variant"))parent.nextDue=Date.now()+7*DAY;
-  else if(correct)parent.nextDue=Date.now()+2*DAY;
-  else parent.nextDue=Date.now()+DAY;
+  if(parent.history.length>80)parent.history=parent.history.slice(-80);
+  const key=targetKey(d.kind,d.variantId);
+  const h=recent(targetHistory(parent,key),3);
+  if(h.length===3&&h.every(x=>x.correct))parent.targetDue[key]=Date.now()+7*DAY;
+  else if(correct)parent.targetDue[key]=Date.now()+2*DAY;
+  else parent.targetDue[key]=Date.now()+DAY;
+  syncItemNextDue(parent);
   save();session.pending=null;session.i++;renderTest();renderOverview()
 }
 function mergeItem(oldp,newp){
-  const keep=["history","nextDue"];
-  const out={...newp};if(oldp)keep.forEach(k=>{if(oldp[k]!==undefined)out[k]=oldp[k]});
+  const keep=["history","nextDue","targetDue"];
+  const out=oldp?{...oldp,...newp}:{...newp};
+  if(oldp)keep.forEach(k=>{if(oldp[k]!==undefined)out[k]=oldp[k]});
   out.id=out.id||("err_"+Math.random().toString(36).slice(2));
-  out.history=out.history||[];out.variants=out.variants||[];out.tags=out.tags||[];
+  out.history=out.history||[];out.tags=out.tags||[];
   out.acceptedAnswers=out.acceptedAnswers||[out.correctAnswer];
-  out.variants=out.variants.map(v=>({...v,acceptedAnswers:v.acceptedAnswers||[v.correctAnswer]}));
+  const oldVars=new Map((oldp&&oldp.variants||[]).map(v=>[v.id,v]));
+  if(newp&&Array.isArray(newp.variants)){
+    out.variants=newp.variants.map(v=>{
+      const ov=oldVars.get(v.id);
+      const merged=ov?{...ov,...v}:{...v};
+      merged.acceptedAnswers=merged.acceptedAnswers||[merged.correctAnswer];
+      return merged
+    });
+  }else out.variants=oldp&&oldp.variants?oldp.variants:[];
   return out
 }
 function readJSON(file,cb){if(!file)return;const r=new FileReader();r.onload=()=>{try{cb(JSON.parse(r.result))}catch(e){alert("JSON 读取失败")}};r.readAsText(file)}
 function download(name,text){const a=document.createElement("a"),u=URL.createObjectURL(new Blob([text],{type:"application/json;charset=utf-8"}));a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),800)}
 document.getElementById("importPack").onchange=e=>readJSON(e.target.files[0],x=>{
-  const arr=Array.isArray(x)?x:(x.items||[]);
+  const arr=Array.isArray(x)?x:(x.items||x.grammarErrors||[]);
   if(!Array.isArray(arr)){alert("错题包格式不正确");return}
-  const map=new Map(db.items.map(it=>[it.id,it]));let added=0;
+  const map=new Map(db.items.map(it=>[it.id,it]));let added=0,skipped=0;
   arr.forEach(it=>{
-    if(!it.question||!it.correctAnswer||!it.ruleId)return;
+    if(!it.id||(!it.question&&!map.has(it.id))){skipped++;return}
     const old=map.get(it.id);map.set(it.id,mergeItem(old,it));if(!old)added++
   });
-  db.items=[...map.values()];save();setupRuleFilter();renderOverview();renderRules();renderAll();
-  alert("导入完成：新增 "+added+" 道；重复错题保留原复习记录。")
+  db.items=[...map.values()];
+  applyBuiltinFixes();
+  dataQuality=validateDatabase();
+  save();setupRuleFilter();renderOverview();renderRules();renderAll();renderQualityNote();
+  const quarantined=dataQuality.badVariants;
+  alert(`导入完成：新增 ${added} 道；${skipped} 条无效记录跳过。${quarantined?`\n另有 ${quarantined} 道变式因缺少独立解析/作答数据被隔离，不进入正常训练。`:"\n所有变式均通过独立解析与作答性校验。"}`)
 });
 document.getElementById("exportBackup").onclick=()=>{
   const d=new Date().toISOString().slice(0,10);
@@ -501,7 +755,7 @@ document.getElementById("exportBackup").onclick=()=>{
 };
 document.getElementById("exportContent").onclick=()=>{
   const d=new Date().toISOString().slice(0,10);
-  download("TRKI_C1_grammar_errors_content_"+d+".json",JSON.stringify({format:"TRKI-C1-GRAMMAR-ERROR-PACK",version:1,items:db.items.map(({history,nextDue,...rest})=>rest)},null,2))
+  download("TRKI_C1_grammar_errors_content_"+d+".json",JSON.stringify({format:"TRKI-C1-GRAMMAR-ERROR-PACK",version:2,items:db.items.map(({history,nextDue,targetDue,_issues,...rest})=>({...rest,variants:(rest.variants||[]).map(({_issues,...v})=>v)}))},null,2))
 };
 document.getElementById("importBackup").onchange=e=>readJSON(e.target.files[0],x=>{
   const obj=x&&x.db?x.db:x;if(!obj||!Array.isArray(obj.items)){alert("不是有效的错题库备份");return}
