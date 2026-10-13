@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<title>ТРКИ-C1 语法错题库</title>
+<title>ТРКИ-C1 语法错题库 v2.1</title>
 <style>
 :root{
   --bg:#f5f5f8;--p:#fff;--t:#17171a;--m:#777780;--l:#dddde5;
@@ -47,22 +47,32 @@ h1{font-size:22px;margin:0 0 6px}h2{font-size:19px;margin:22px 0 8px}h3{font-siz
   .question,.prompt{font-size:19px}
 }
 
-.hub-home-link{
-  position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));
-  z-index:9999;text-decoration:none;background:var(--p);color:var(--t);
-  border:1px solid var(--l);border-radius:999px;padding:10px 13px;
-  font-weight:800;font-size:13px;box-shadow:0 4px 18px rgba(0,0,0,.12)
+.modegrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.modegrid button{font-weight:700}
+.modegrid button.active{background:var(--ac);color:#fff;border-color:transparent}
+.practice-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 12px}
+.practice-top button{padding:9px 11px}
+.practice-title{font-size:14px;color:var(--m);font-weight:700}
+.practice-view{max-width:760px;margin:auto}
+body.in-practice .nav,
+body.in-practice .hero{display:none}
+body.in-practice .wrap{max-width:760px;padding-top:calc(10px + env(safe-area-inset-top,0px))}
+body.in-practice .practice-view{display:block}
+.missing-data{margin-top:14px;padding:13px;border-radius:14px;background:var(--mid);line-height:1.6}
+.hintbox{margin-top:10px;text-align:center;color:var(--m);font-size:13px;line-height:1.6}
+.choicegrid button{font-size:17px;padding:14px 13px}
+@media(max-width:650px){
+  .modegrid{grid-template-columns:1fr}
+  body.in-practice .wrap{padding-left:12px;padding-right:12px}
+  .testbox{margin-top:6px;padding:14px}
 }
-.hub-home-link:active{transform:scale(.98)}
 
 </style>
 </head>
 <body>
-<a class="hub-home-link" href="https://domoyo399-byte.github.io/trki-c1-hub/" aria-label="返回 C1 学习中心">⌂ 学习中心</a>
-
 <div class="wrap">
   <div class="hero">
-    <h1>ТРКИ-C1 语法错题库</h1>
+    <h1>ТРКИ-C1 语法错题库 <span style="font-size:13px;color:var(--m);font-weight:600">v2.1</span></h1>
     <div class="sub">只收真正做错的语法题；既看“哪一道题错”，也看“哪个语法规则反复出问题”。</div>
   </div>
 
@@ -104,23 +114,23 @@ h1{font-size:22px;margin:0 0 6px}h2{font-size:19px;margin:22px 0 8px}h3{font-siz
 
   <section id="today" class="view">
     <h2>今日错题</h2>
-
-    <div class="panel hidden" id="resumePanel">
-      <h3>未完成训练</h3>
-      <div class="muted" id="resumeText"></div>
-      <div class="actions">
-        <button class="primary" id="resumeSession">继续上次训练</button>
-        <button id="discardSession">放弃这轮</button>
-      </div>
-    </div>
     <div class="panel">
-      <div class="actions">
-        <button class="primary" onclick="startReview('original')">只重做原错题</button>
-        <button onclick="startReview('variant')">只做同类变式</button>
+      <div class="modegrid">
+        <button class="modebtn" data-mode="original" onclick="startReview('original')">只重做原错题</button>
+        <button class="modebtn" data-mode="variant" onclick="startReview('variant')">只做同类变式</button>
+        <button class="modebtn" data-mode="mixed" onclick="startReview('mixed')">原题 + 变式混合</button>
       </div>
-      <button style="width:100%;margin-top:8px" onclick="startReview('mixed')">原题 + 变式混合</button>
+      <div class="muted" style="margin-top:10px">点任一模式后会进入独立练习页。选择题直接显示选项；填空题必须带原型/提示，否则不会强迫你盲填。</div>
     </div>
-    <div id="testArea" class="testbox"><div class="muted" style="text-align:center">选择一种模式开始。</div></div>
+  </section>
+
+  <section id="practice" class="view practice-view">
+    <div class="practice-top">
+      <button onclick="exitPractice()">← 退出练习</button>
+      <div class="practice-title" id="practiceTitle">错题练习</div>
+      <span style="width:76px"></span>
+    </div>
+    <div id="testArea" class="testbox"><div class="muted" style="text-align:center">准备开始。</div></div>
   </section>
 
   <section id="rules" class="view">
@@ -159,10 +169,68 @@ h1{font-size:22px;margin:0 0 6px}h2{font-size:19px;margin:22px 0 8px}h3{font-siz
 
 <script>
 const STORAGE_KEY="trki_c1_grammar_errors_v1";
-const SESSION_KEY="trki_c1_grammar_session_v1";
 const DAY=86400000;
 
-const DEMO=[];
+const DEMO=[
+  {
+    id:"vopreki_dative_001",
+    questionType:"choice",
+    question:"Вопреки ___ он продолжил работу.",
+    options:["обстоятельства","обстоятельствам","обстоятельствами"],
+    userAnswer:"обстоятельства",
+    correctAnswer:"обстоятельствам",
+    acceptedAnswers:["обстоятельствам"],
+    ruleId:"prep_vopreki_dative",
+    ruleName:"вопреки + Д.п.",
+    errorType:"格支配",
+    explanation:"介词 вопреки 要求第三格（Д.п.）。",
+    source:"演示题 / №1",
+    tags:["介词","格支配"],
+    variants:[
+      {id:"v1",questionType:"choice",question:"Вопреки ___ директора проект продолжили.",options:["решение","решению","решением"],correctAnswer:"решению",acceptedAnswers:["решению"]},
+      {id:"v2",questionType:"fill",question:"Вопреки ___ (совет) он всё-таки поехал.",correctAnswer:"совету",acceptedAnswers:["совету"]}
+    ],
+    history:[],nextDue:Date.now()
+  },
+  {
+    id:"soglasno_dative_001",
+    questionType:"fill",
+    question:"Согласно ___ (расписание), экзамен начнётся в десять.",
+    options:[],
+    userAnswer:"расписания",
+    correctAnswer:"расписанию",
+    acceptedAnswers:["расписанию"],
+    ruleId:"prep_soglasno_dative",
+    ruleName:"согласно + Д.п.",
+    errorType:"格支配",
+    explanation:"介词 согласно 在规范用法中要求第三格。",
+    source:"演示题 / №2",
+    tags:["介词","格支配"],
+    variants:[
+      {id:"v1",questionType:"fill",question:"Согласно ___ (данные), ситуация изменилась.",correctAnswer:"данным",acceptedAnswers:["данным"]}
+    ],
+    history:[],nextDue:Date.now()
+  },
+  {
+    id:"chtoby_subj_001",
+    questionType:"choice",
+    question:"Я хочу, ___ вы ещё раз проверили документы.",
+    options:["что","чтобы","как"],
+    userAnswer:"что",
+    correctAnswer:"чтобы",
+    acceptedAnswers:["чтобы"],
+    ruleId:"chtoby_subordinate",
+    ruleName:"чтобы + 过去时形式（目的/愿望从句）",
+    errorType:"连接词 / 从句",
+    explanation:"主句表达愿望、要求、目的等时，常用 чтобы 引导从句；从句谓语通常形式上用过去时。",
+    source:"演示题 / №3",
+    tags:["从句","连接词"],
+    variants:[
+      {id:"v1",questionType:"choice",question:"Важно, ___ все участники заранее получили материалы.",options:["что","чтобы","если"],correctAnswer:"чтобы",acceptedAnswers:["чтобы"]}
+    ],
+    history:[],nextDue:Date.now()
+  }
+];
 
 function clone(x){return JSON.parse(JSON.stringify(x))}
 function norm(s){return (s||"").toLowerCase().replace(/ё/g,"е").trim().replace(/\s+/g," ")}
@@ -251,8 +319,38 @@ document.getElementById("ruleFilter").onchange=renderAll;
 function showView(id){
   document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===id));
   document.querySelectorAll(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.view===id));
+  document.body.classList.toggle("in-practice",id==="practice");
   window.scrollTo({top:0,behavior:"auto"});
   if(id==="rules")renderRules(); if(id==="all")renderAll()
+}
+function updateModeButtons(mode){
+  document.querySelectorAll(".modebtn").forEach(b=>b.classList.toggle("active",b.dataset.mode===mode))
+}
+function exitPractice(){
+  session.pending=null;
+  showView("today");
+}
+function choiceOptions(q,parent){
+  const own=(q.options||[]).filter(x=>String(x||"").trim());
+  if(own.length>=2)return own;
+  const par=(parent&&parent.options||[]).filter(x=>String(x||"").trim());
+  // 只在父题选项确实包含本题正确答案时复用，避免拿错误词形来凑选项。
+  if(par.length>=2 && par.map(norm).includes(norm(q.correctAnswer)))return par;
+  return []
+}
+function extractFillHint(q){
+  if(q.promptHint)return String(q.promptHint);
+  if(q.lemma)return String(q.lemma);
+  if(q.hint)return String(q.hint);
+  const m=String(q.question||"").match(/\(([^()]{1,60})\)\s*[。.!?]?\s*$/);
+  return m?m[1].trim():""
+}
+function inputPlan(q,parent){
+  const ops=choiceOptions(q,parent);
+  if(ops.length>=2)return {type:"choice",options:ops};
+  const hint=extractFillHint(q);
+  if(hint)return {type:"fill",hint};
+  return {type:"unsupported"};
 }
 document.querySelectorAll(".navbtn").forEach(b=>b.onclick=()=>showView(b.dataset.view));
 
@@ -268,72 +366,61 @@ function buildDeck(mode,ruleId=null){
   });
   return deck.sort(()=>Math.random()-.5).slice(0,12);
 }
-
-function deckDescriptor(d){return {itemId:d.itemId,kind:d.kind,variantId:d.variantId||null}}
-function resolveDescriptor(x){
-  const it=db.items.find(z=>z.id===x.itemId);if(!it)return null;
-  if(x.kind==="original")return {itemId:it.id,kind:"original",q:it};
-  const v=(it.variants||[]).find(z=>z.id===x.variantId);if(!v)return null;
-  return {itemId:it.id,kind:"variant",variantId:v.id,q:v,parent:it}
+function startReview(mode){
+  session.mode=mode;session.deck=buildDeck(mode);session.i=0;session.pending=null;
+  updateModeButtons(mode);
+  document.getElementById("practiceTitle").textContent=mode==="original"?"只重做原错题":mode==="variant"?"只做同类变式":"原题 + 变式混合";
+  showView("practice");renderTest()
 }
-function savedGrammarSession(){
-  try{
-    const s=JSON.parse(localStorage.getItem(SESSION_KEY)||"null");
-    if(!s||!Array.isArray(s.deck))return null;
-    s.deck=s.deck.filter(x=>resolveDescriptor(x));
-    s.i=Math.max(0,Math.min(Number(s.i)||0,s.deck.length));
-    if(!s.deck.length||s.i>=s.deck.length){localStorage.removeItem(SESSION_KEY);return null}
-    return s
-  }catch(e){return null}
+function startRule(ruleId){
+  session.mode="mixed";session.deck=buildDeck("mixed",ruleId);session.i=0;session.pending=null;
+  updateModeButtons("mixed");
+  const r=ruleStats().find(x=>x.ruleId===ruleId);
+  document.getElementById("practiceTitle").textContent=r?("专项："+r.ruleName):"语法点专项";
+  showView("practice");renderTest()
 }
-function renderResume(){
-  const el=document.getElementById("resumePanel");if(!el)return;
-  const s=savedGrammarSession();
-  if(!s){el.classList.add("hidden");return}
-  const names={mixed:"原题 + 变式",original:"原错题",variant:"变式题"};
-  document.getElementById("resumeText").textContent=`${names[s.mode]||"错题训练"} · ${s.i+1}/${s.deck.length} · 已自动保存`;
-  el.classList.remove("hidden")
-}
-function persistGrammarSession(){
-  if(!session.deck.length||session.i>=session.deck.length){localStorage.removeItem(SESSION_KEY);renderResume();return}
-  localStorage.setItem(SESSION_KEY,JSON.stringify({
-    format:"TRKI-C1-GRAMMAR-SESSION",version:1,mode:session.mode,
-    deck:session.deck.map(deckDescriptor),i:session.i,savedAt:Date.now()
-  }));renderResume()
-}
-function clearGrammarSession(){localStorage.removeItem(SESSION_KEY);renderResume()}
-function resumeGrammarSession(){
-  const s=savedGrammarSession();if(!s){alert("没有可继续的训练。");renderResume();return}
-  session={deck:s.deck.map(resolveDescriptor).filter(Boolean),i:s.i,mode:s.mode,pending:null};
-  showView("today");renderTest()
-}
-
-function startReview(mode){session.mode=mode;session.deck=buildDeck(mode);session.i=0;persistGrammarSession();showView("today");renderTest()}
-function startRule(ruleId){session.mode="mixed";session.deck=buildDeck("mixed",ruleId);session.i=0;persistGrammarSession();showView("today");renderTest()}
 function renderTest(){
   const area=document.getElementById("testArea");
+  window.scrollTo({top:0,behavior:"auto"});
   if(session.i>=session.deck.length){
-    clearGrammarSession();area.innerHTML='<div style="text-align:center"><b>这一轮完成了。</b><div class="muted" style="margin-top:8px">题目和语法点统计已更新。</div></div>';
+    area.innerHTML='<div style="text-align:center;padding:24px 8px"><b>这一轮完成了。</b><div class="muted" style="margin-top:8px">题目和语法点统计已更新。</div><button class="primary" style="width:100%;margin-top:16px" onclick="exitPractice()">返回今日错题</button></div>';
     renderOverview();renderRules();renderAll();return
   }
-  const d=session.deck[session.i],q=d.q;
+  const d=session.deck[session.i],q=d.q,parent=d.parent||q;
   const kindLabel=d.kind==="original"?"原错题":"同类变式";
+  const plan=inputPlan(q,parent);
   let answer="";
-  if(q.questionType==="choice"){
-    answer=`<div class="choicegrid">${(q.options||[]).map((op,i)=>`<button onclick="submitAnswer('${encodeURIComponent(op)}')">${String.fromCharCode(65+i)}. ${esc(op)}</button>`).join("")}</div>`;
+  if(plan.type==="choice"){
+    answer=`<div class="choicegrid">${plan.options.map((op,i)=>`<button onclick="submitAnswer('${encodeURIComponent(op)}')">${String.fromCharCode(65+i)}. ${esc(op)}</button>`).join("")}</div>`;
+  }else if(plan.type==="fill"){
+    answer=`<div class="hintbox">原型 / 提示：<b class="ru">${esc(plan.hint)}</b></div>
+      <input id="fillAnswer" style="width:100%;margin-top:12px" placeholder="根据原型填写正确形式">
+      <button class="primary" style="width:100%;margin-top:8px" onclick="submitFill()">提交</button>`;
   }else{
-    answer=`<input id="fillAnswer" style="width:100%;margin-top:14px" placeholder="输入答案"><button class="primary" style="width:100%;margin-top:8px" onclick="submitFill()">提交</button>`;
+    answer=`<div class="missing-data">
+      <b>这道题缺少选项或原型提示，当前数据不足以公平作答。</b>
+      <div class="muted" style="margin-top:6px">不会再让你凭空猜“这里到底该填什么”。可以查看答案，或跳过并继续。</div>
+      <button style="width:100%;margin-top:10px" onclick="revealUnsupported()">显示答案并记为数据待修复</button>
+      <button style="width:100%;margin-top:8px" onclick="skipUnsupported()">跳过此题</button>
+    </div>`;
   }
-  const parent=d.parent||q;
   area.innerHTML=`
     <div class="testlabel">${kindLabel} · ${session.i+1}/${session.deck.length}</div>
     <div class="prompt ru">${esc(q.question)}</div>
-    <div class="muted" style="text-align:center;margin-top:8px">考点暂不显示，先独立作答。</div>
     ${answer}
     <div id="feedbackArea"></div>
     <div class="muted" style="text-align:center;margin-top:10px">来源：${esc(parent.source||"未标注")}</div>`;
 }
 function submitFill(){const v=(document.getElementById("fillAnswer").value||"").trim();if(!v){alert("先输入答案");return}submitAnswer(encodeURIComponent(v))}
+
+function revealUnsupported(){
+  const d=session.deck[session.i],q=d.q,parent=d.parent||q,fb=document.getElementById("feedbackArea");
+  fb.innerHTML=`<div class="feedback mid"><b>⚠️ 数据待修复</b><br>正确答案：<b>${esc(q.correctAnswer)}</b><div class="rulecard"><b>${esc(parent.ruleName)}</b><div class="muted">${esc(parent.explanation)}</div></div></div>
+    <button class="primary" style="width:100%;margin-top:10px" onclick="advanceWithoutRecord()">下一题</button>`;
+}
+function skipUnsupported(){advanceWithoutRecord()}
+function advanceWithoutRecord(){session.pending=null;session.i++;renderTest()}
+
 function submitAnswer(encoded){
   const ans=decodeURIComponent(encoded),d=session.deck[session.i],q=d.q,parent=d.parent||q;
   const accepted=(q.acceptedAnswers||[q.correctAnswer]).map(norm);
@@ -358,7 +445,7 @@ function recordAndNext(correct){
   if(streak.length===3&&streak.every(x=>x.correct)&&streak.some(x=>x.kind==="variant"))parent.nextDue=Date.now()+7*DAY;
   else if(correct)parent.nextDue=Date.now()+2*DAY;
   else parent.nextDue=Date.now()+DAY;
-  save();session.pending=null;session.i++;persistGrammarSession();renderTest();renderOverview()
+  save();session.pending=null;session.i++;renderTest();renderOverview()
 }
 function mergeItem(oldp,newp){
   const keep=["history","nextDue"];
@@ -366,6 +453,7 @@ function mergeItem(oldp,newp){
   out.id=out.id||("err_"+Math.random().toString(36).slice(2));
   out.history=out.history||[];out.variants=out.variants||[];out.tags=out.tags||[];
   out.acceptedAnswers=out.acceptedAnswers||[out.correctAnswer];
+  out.variants=out.variants.map(v=>({...v,acceptedAnswers:v.acceptedAnswers||[v.correctAnswer]}));
   return out
 }
 function readJSON(file,cb){if(!file)return;const r=new FileReader();r.onload=()=>{try{cb(JSON.parse(r.result))}catch(e){alert("JSON 读取失败")}};r.readAsText(file)}
@@ -378,14 +466,12 @@ document.getElementById("importPack").onchange=e=>readJSON(e.target.files[0],x=>
     if(!it.question||!it.correctAnswer||!it.ruleId)return;
     const old=map.get(it.id);map.set(it.id,mergeItem(old,it));if(!old)added++
   });
-  db.items=[...map.values()];save();document.getElementById("resumeSession").onclick=resumeGrammarSession;
-document.getElementById("discardSession").onclick=()=>{if(confirm("放弃这轮未完成训练？已经记录的成绩不会删除。"))clearGrammarSession()};
-setupRuleFilter();renderOverview();renderRules();renderAll();renderResume();
+  db.items=[...map.values()];save();setupRuleFilter();renderOverview();renderRules();renderAll();
   alert("导入完成：新增 "+added+" 道；重复错题保留原复习记录。")
 });
 document.getElementById("exportBackup").onclick=()=>{
   const d=new Date().toISOString().slice(0,10);
-  download("TRKI_C1_grammar_errors_backup_"+d+".json",JSON.stringify({format:"TRKI-C1-GRAMMAR-ERROR-BACKUP",version:1.1,exportedAt:new Date().toISOString(),db,session:savedGrammarSession()},null,2))
+  download("TRKI_C1_grammar_errors_backup_"+d+".json",JSON.stringify({format:"TRKI-C1-GRAMMAR-ERROR-BACKUP",version:1,exportedAt:new Date().toISOString(),db},null,2))
 };
 document.getElementById("exportContent").onclick=()=>{
   const d=new Date().toISOString().slice(0,10);
@@ -393,7 +479,7 @@ document.getElementById("exportContent").onclick=()=>{
 };
 document.getElementById("importBackup").onchange=e=>readJSON(e.target.files[0],x=>{
   const obj=x&&x.db?x.db:x;if(!obj||!Array.isArray(obj.items)){alert("不是有效的错题库备份");return}
-  db=obj;save();if(x&&x.session)localStorage.setItem(SESSION_KEY,JSON.stringify(x.session));else localStorage.removeItem(SESSION_KEY);setupRuleFilter();renderOverview();renderRules();renderAll();renderResume();alert("错题库备份已恢复")
+  db=obj;save();setupRuleFilter();renderOverview();renderRules();renderAll();alert("错题库备份已恢复")
 });
 
 setupRuleFilter();renderOverview();renderRules();renderAll();
