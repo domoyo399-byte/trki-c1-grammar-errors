@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<title>ТРКИ-C1 语法错题库 v2.1</title>
+<title>ТРКИ-C1 语法错题库 v2.1.1</title>
 <style>
 :root{
   --bg:#f5f5f8;--p:#fff;--t:#17171a;--m:#777780;--l:#dddde5;
@@ -67,12 +67,38 @@ body.in-practice .practice-view{display:block}
   .testbox{margin-top:6px;padding:14px}
 }
 
+
+.hub-fab{
+  position:fixed;
+  right:calc(16px + env(safe-area-inset-right,0px));
+  bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  z-index:999;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  text-decoration:none;
+  color:var(--t);
+  background:var(--p);
+  border:1px solid var(--l);
+  border-radius:999px;
+  padding:11px 16px;
+  font-weight:800;
+  box-shadow:0 8px 28px rgba(0,0,0,.12);
+}
+.hub-fab:active{transform:scale(.98)}
+body.in-practice .hub-fab{display:inline-flex}
+@media(max-width:650px){
+  .hub-fab{right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));padding:10px 14px}
+  .wrap{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+}
+
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="hero">
-    <h1>ТРКИ-C1 语法错题库 <span style="font-size:13px;color:var(--m);font-weight:600">v2.1</span></h1>
+    <h1>ТРКИ-C1 语法错题库 <span style="font-size:13px;color:var(--m);font-weight:600">v2.1.1</span></h1>
     <div class="sub">只收真正做错的语法题；既看“哪一道题错”，也看“哪个语法规则反复出问题”。</div>
   </div>
 
@@ -484,5 +510,8 @@ document.getElementById("importBackup").onchange=e=>readJSON(e.target.files[0],x
 
 setupRuleFilter();renderOverview();renderRules();renderAll();
 </script>
+
+<a class="hub-fab" href="https://domoyo399-byte.github.io/trki-c1-hub/" aria-label="返回学习中心">⌂ 学习中心</a>
+
 </body>
 </html>
