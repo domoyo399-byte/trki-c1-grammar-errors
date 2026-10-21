@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<title>ТРКИ-C1 语法错题库 v2.2</title>
+<title>ТРКИ-C1 语法错题库 v2.2 · IndexedDB Candidate</title>
 <style>
 :root{
   --bg:#f5f5f8;--p:#fff;--t:#17171a;--m:#777780;--l:#dddde5;
@@ -233,6 +233,113 @@ body.in-practice .hub-fab{display:none}
 </div>
 
 <script>
+/* TRKI-C1 IndexedDB storage bridge | Candidate 2026-10-21
+ * Preserves legacy key names, page-local sessions and the original data shapes.
+ * No automatic deletion/migration.  Hub explicitly initiates verified migration.
+ */
+(function(){
+'use strict';
+const CORE=['trki_c1_srs_v5','trki_c1_phrase_db_v1','trki_c1_grammar_errors_v1'];
+const LARGE=['trki_c1_hub_undo_v1','trki_c1_vocab_rollback_v6'];
+const KEYS=new Set([...CORE,...LARGE]);
+const MARK='__trki_c1_indexeddb_migrated_v1';
+let db=null, migrated=false, cache=new Map(), queue=Promise.resolve(), writeError=null;
+const statusId='trki-idb-status';
+function status(message,level='warn'){
+  let el=document.getElementById(statusId);
+  if(!el){el=document.createElement('aside');el.id=statusId;el.setAttribute('role','status');el.style.cssText='position:sticky;top:0;z-index:9999;padding:12px 15px;font:14px/1.6 -apple-system,BlinkMacSystemFont,sans-serif;border:2px solid #edb163;background:#fff3df;color:#272018;white-space:pre-wrap;';document.body.prepend(el)}
+  if(level==='error')el.style.borderColor='#ce4848';el.textContent=message;
+}
+function open(){return new Promise((resolve,reject)=>{
+ if(!('indexedDB' in window))return reject(Error('浏览器不支持 IndexedDB'));
+ const r=indexedDB.open('trki_c1_learning_storage_v1',1);
+ r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains('kv'))r.result.createObjectStore('kv')};
+ r.onerror=()=>reject(r.error||Error('无法打开 IndexedDB'));
+ r.onblocked=()=>reject(Error('数据库升级被其他页面阻止，请关闭其它学习页面后重试'));
+ r.onsuccess=()=>resolve(r.result);
+})}
+function readMany(keys){return new Promise((resolve,reject)=>{
+ const t=db.transaction('kv','readonly'),st=t.objectStore('kv'),rows={};
+ for(const k of keys){let r=st.get(k);r.onsuccess=()=>{rows[k]=r.result}}
+ t.oncomplete=()=>resolve(rows);t.onerror=()=>reject(t.error||Error('读取 IndexedDB 失败'));t.onabort=()=>reject(t.error||Error('读取中止'));
+})}
+function writeMany(data){return new Promise((resolve,reject)=>{
+ const t=db.transaction('kv','readwrite'),st=t.objectStore('kv');
+ for(const [k,v] of Object.entries(data)){if(v===undefined)throw Error('写入含 undefined：'+k);st.put(v,k)}
+ t.oncomplete=()=>resolve();t.onerror=()=>reject(t.error||Error('写入 IndexedDB 失败'));t.onabort=()=>reject(t.error||Error('写入中止'));
+})}
+function queueWrite(data){const job=queue.catch(()=>{}).then(()=>writeMany(data));queue=job;return job}
+function readLocal(k){return localStorage.getItem(k)}
+function ensureJSON(k,v){if(v==null)return;let obj;try{obj=JSON.parse(v)}catch(e){throw Error(k+' 内容不是有效 JSON，已停止迁移')}
+ if(k===CORE[0]&&(!obj||typeof obj.cards!=='object'||Array.isArray(obj.cards)))throw Error('单词库格式校验未通过，已停止迁移');
+ if(k===CORE[1]&&(!obj||!Array.isArray(obj.phrases)))throw Error('语料库格式校验未通过，已停止迁移');
+ if(k===CORE[2]&&(!obj||!Array.isArray(obj.items)))throw Error('错题库格式校验未通过，已停止迁移');
+}
+async function init(){
+ db=await open();const records=await readMany([MARK,...KEYS]);migrated=records[MARK]===true;
+ if(migrated){
+   for(const k of CORE){if(!Object.prototype.hasOwnProperty.call(records,k))throw Error('已迁移的数据库缺少 '+k+'，为防止重置学习进度，已停止启动。请使用已导出的完整备份恢复。')}
+   for(const k of KEYS){if(Object.prototype.hasOwnProperty.call(records,k))cache.set(k,records[k])}
+   // A previously-open browser tab may have left a stale legacy shadow. Never overwrite IndexedDB from it.
+   for(const k of CORE){const shadow=readLocal(k);if(shadow!=null)status('注意：发现尚未清理的旧库数据。当前以 IndexedDB 为准；请勿打开旧版本页面。','warn')}
+ }
+ return migrated;
+}
+function getItem(k){if(migrated&&KEYS.has(k))return cache.has(k)?cache.get(k):null;return readLocal(k)}
+function setItem(k,v){v=String(v);
+ if(migrated&&KEYS.has(k)){
+   cache.set(k,v);
+   return queueWrite({[k]:v}).then(()=>{writeError=null},e=>{writeError=e;status('⚠️ 学习数据写入失败：'+e.message+'\n请不要清理浏览器数据；立即在 Hub 导出备份。','error');throw e});
+ }
+ return localStorage.setItem(k,v)
+}
+function removeItem(k){
+ if(migrated&&KEYS.has(k)){
+  cache.set(k,null);
+  return queueWrite({[k]:null}).catch(e=>{writeError=e;status('⚠️ 删除数据失败：'+e.message,'error');throw e})
+ }
+ return localStorage.removeItem(k)
+}
+function key(index){return Array.from(new Set([...Array.from({length:localStorage.length},(_,i)=>localStorage.key(i)),...(migrated?KEYS:[])])).filter(k=>k!=null)[index]??null}
+function storageBytes(){let local=0,dbs=0;for(let i=0;i<localStorage.length;i++){let k=localStorage.key(i),v=localStorage.getItem(k)||'';local+=2*(k.length+v.length)}
+ if(migrated)for(const k of KEYS){let v=cache.get(k);if(typeof v==='string')dbs+=2*(k.length+v.length)}
+ return {local,db:dbs};
+}
+async function migrate(){
+ if(migrated)return {already:true};
+ await queue.catch(()=>{});
+ const records={};for(const k of KEYS){let raw=readLocal(k);ensureJSON(k,raw);records[k]=raw}
+ await writeMany({...records,[MARK]:true});
+ const check=await readMany([...KEYS,MARK]);
+ if(check[MARK]!==true||KEYS.size!==Object.keys(records).length||[...KEYS].some(k=>check[k]!==records[k]))throw Error('迁移验证失败，未清除旧数据');
+ // Only after a completed, verified DB transaction do legacy keys get removed.
+ migrated=true;for(const k of KEYS){cache.set(k,records[k]);localStorage.removeItem(k)}
+ return {moved:CORE.filter(k=>records[k]!=null).length,bytesFreed:[...KEYS].reduce((a,k)=>a+2*(records[k]?.length||0),0)}
+}
+async function commit(stores){
+ if(!migrated)throw Error('请先完成备份及 IndexedDB 迁移，再进行导入/恢复');
+ await queue.catch(()=>{});
+ const bulk={},small={};
+ for(const [k,v] of Object.entries(stores)){
+  if(KEYS.has(k))bulk[k]=v;
+  else small[k]=v;
+ }
+ for(const [k,v] of Object.entries(bulk))if(typeof v==='string')ensureJSON(k,v);
+ for(const [k,v] of Object.entries(small)){
+  if(v!=null&&typeof v!=='string')throw Error('意外的数据类型: '+k)
+ }
+ // Typical hub import touches only IndexedDB keys. All bulk keys are written atomically.
+ if(Object.keys(bulk).length)await writeMany(bulk);
+ for(const [k,v] of Object.entries(bulk))cache.set(k,v);
+ for(const [k,v] of Object.entries(small)){if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}
+}
+window.TRKIStore={init,getItem,setItem,removeItem,key,storageBytes,migrate,commit,
+ get length(){return Array.from(new Set([...Array.from({length:localStorage.length},(_,i)=>localStorage.key(i)),...(migrated?KEYS:[])])).length},
+ get isMigrated(){return migrated},get lastError(){return writeError},whenSaved:()=>queue};
+})();
+
+</script>
+<script type="text/plain" id="trki-original-app">
 const STORAGE_KEY="trki_c1_grammar_errors_v1";
 const DAY=86400000;
 
@@ -415,14 +522,14 @@ function clone(x){return JSON.parse(JSON.stringify(x))}
 function norm(s){return (s||"").toLowerCase().replace(/ё/g,"е").trim().replace(/\s+/g," ")}
 function esc(s=""){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
 function load(){
-  try{const x=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");if(x&&Array.isArray(x.items))return x}catch(e){}
+  try{const x=JSON.parse(TRKIStore.getItem(STORAGE_KEY)||"null");if(x&&Array.isArray(x.items))return x}catch(e){}
   const x={format:"TRKI-C1-GRAMMAR-ERROR-DB",version:1,items:clone(DEMO)};
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(x));return x;
+  TRKIStore.setItem(STORAGE_KEY,JSON.stringify(x));return x;
 }
 let db=load(),session={deck:[],i:0,mode:"mixed",pending:null};
 applyBuiltinFixes();
 let dataQuality=validateDatabase();
-function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(db))}
+function save(){TRKIStore.setItem(STORAGE_KEY,JSON.stringify(db))}
 save();
 function recent(arr,n){return (arr||[]).slice(-n)}
 function itemStable(it){
@@ -764,8 +871,21 @@ document.getElementById("importBackup").onchange=e=>readJSON(e.target.files[0],x
 
 setupRuleFilter();renderOverview();renderRules();renderAll();
 </script>
+<script>
+TRKIStore.init().then(() => {
+  const source=document.getElementById('trki-original-app');
+  const app=document.createElement('script');app.textContent=source.textContent;
+  document.body.appendChild(app);
+}).catch(error => {
+  const warning=document.createElement('div');warning.setAttribute('role','alert');
+  warning.style.cssText='position:sticky;top:0;z-index:999999;margin:12px;padding:18px;background:#fff0df;color:#6a2525;border:2px solid #c44;border-radius:12px;font:16px/1.6 sans-serif';
+  warning.textContent='学习数据库启动失败，为保护已有数据，已停止加载此页面：'+error.message+'。请勿清空浏览器数据。';
+  document.body.prepend(warning);
+});
+</script>
 
 <a class="hub-fab" href="https://domoyo399-byte.github.io/trki-c1-hub/" aria-label="返回学习中心">⌂ 学习中心</a>
 
+<div style="position:fixed;top:0;right:0;z-index:900;background:#efe7ff;color:#40316d;padding:3px 8px;font:11px sans-serif;opacity:.9;border-radius:0 0 0 9px">IndexedDB Candidate</div>
 </body>
 </html>
