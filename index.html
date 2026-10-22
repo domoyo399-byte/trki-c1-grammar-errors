@@ -132,13 +132,14 @@ body.in-practice .hub-fab{display:none}
 }
 
 
-/* candidate-v3 viewport safety. One document scroller; no fixed body height or nested scroll traps. */
+/* four-repo-root v4 viewport (legacy v3 rules). One document scroller; no fixed body height or nested scroll traps. */
 html{min-height:100%;height:auto;overflow-y:auto;overscroll-behavior-y:none;-webkit-text-size-adjust:100%}
 body{min-height:100svh;height:auto;overflow-x:clip;overscroll-behavior-y:none}
 .wrap{min-height:100svh;max-width:100%}
 @media(min-width:700px){.wrap{max-width:900px}}
 @supports not (height:100svh){body,.wrap{min-height:100vh}}
 </style>
+<meta name="trki-candidate-build" content="2026-10-22-four-repo-root-v4">
 </head>
 <body>
 <div class="wrap">
@@ -200,7 +201,7 @@ body{min-height:100svh;height:auto;overflow-x:clip;overscroll-behavior-y:none}
     <div class="practice-top">
       <button onclick="exitPractice()">← 退出练习</button>
       <div class="practice-title" id="practiceTitle">错题练习</div>
-      <a class="practice-hub" href="../">⌂ 学习中心</a>
+      <a class="practice-hub" href="https://domoyo399-byte.github.io/trki-c1-hub/">⌂ 学习中心</a>
     </div>
     <div id="testArea" class="testbox"><div class="muted" style="text-align:center">准备开始。</div></div>
   </section>
@@ -1030,7 +1031,7 @@ TRKIStore.init().then((ok) => {
 });
 </script>
 
-<a class="hub-fab" href="../" aria-label="返回学习中心">⌂ 学习中心</a>
+<a class="hub-fab" href="https://domoyo399-byte.github.io/trki-c1-hub/" aria-label="返回学习中心">⌂ 学习中心</a>
 
 <div style="position:fixed;top:0;right:0;z-index:900;background:#efe7ff;color:#40316d;padding:3px 8px;font:11px sans-serif;opacity:.9;border-radius:0 0 0 9px">Storage v2 Candidate</div>
 </body>
